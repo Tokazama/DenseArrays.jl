@@ -1,4 +1,6 @@
 
+function unsafe_getindex end
+
 """
     FixedImmutable
 
@@ -37,22 +39,22 @@ for T in (:FixedImmutable, :FixedMutable)
 
         function $T(data...)
             @nospecialize data
-            return $T(data)
+            return DenseArrays.$T(data)
         end
 
         function $T(data::AbstractVector)
             @nospecialize data
-            return $T(Tuple(data))
+            return DenseArrays.$T(Tuple(data))
         end
 
-        @nospecialize Base.length(x::$T) = length(x.data)
+        function unsafe_getindex(x::$T, i::Int)
+            @nospecialize
+            return getfield(x.data, i, false)
+        end
 
-        @nospecialize Base.length(x::$T) = length(x.data)
-
-        @nospecialize unsafe_getindex(x::$T, i::Int) = getfield(v.data, i, false)
-
-        @nospecialize function unsafe_getindex(x::$T{T}, inds::AbstractVector{Int}) where {T}
-            return $T{T}([@inbounds(unsafe_getindex(x, i)) for i in inds])
+        function Base.length(x::$T)
+            @nospecialize
+            return length(x.data)
         end
     end
 end

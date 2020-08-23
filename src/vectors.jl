@@ -16,24 +16,14 @@ for I in (:Immutable,:Mutable)
             data::$CollectionType{T}
             axis::OneTo{Int}
 
-            function $VType{T}(data::$CollectionType{T}) where {T}
-                @nospecialize data
-                return new{T}(data, OneTo{Int}(length(data)))
-            end
-
             function $VType{T}(data) where {T}
                 @nospecialize data
-                return $VType{T}($CollectionType(data))
+                return new{T}($CollectionType{T}(data), OneTo{Int}(length(data)))
             end
 
-            function $VType(data) where {T}
+            function $VType(data)
                 @nospecialize data
-                return $VType{T}(data)
-            end
-
-            function $VType(data::$CollectionType{T}) where {T}
-                @nospecialize data
-                return $VType{T}(data)
+                return new{eltype(data)}($CollectionType(data), OneTo{Int}(length(data)))
             end
         end
     end
@@ -53,37 +43,27 @@ for I in (:Immutable,:Mutable)
             data::$CollectionType{T}
             axis::OneToSRange{Int,L}
 
-            function $VType{T,L}(
+            function $VType{T}(
                 data::$CollectionType{T},
                 axis::OneToSRange{Int,L},
-                check_length::Bool=true
             ) where {T,L}
+
                 check_length && length(data) === L || error("axis and data have different lengths.")
                 return new{T,L}(data, axis)
             end
 
-            function $VType{T}(data::$CollectionType{T}) where {T}
-                L = length(data)
+            function $VType{T,L}(data::$CollectionType{T}) where {T,L}
                 @nospecialize data
-                return $VType{T,L}(data, OneToSRange{Int}(L))
+                return new{T,L}(data, OneToSRange{Int,Int(L)}())
             end
 
             function $VType{T}(data) where {T}
-                L = length(data)
+                L = Int(length(data))
                 @nospecialize data
-                return new{T,L}($CollectionType(data), OneToSRange{Int,L}())
+                return $VType{T,L}(data)
             end
 
-            function $VType(data) where {T}
-                L = length(data)
-                @nospecialize data
-                return new{T,L}($CollectionType(data), OneToSRange{Int,L}())
-            end
-
-            function $VType(data::$CollectionType{T}) where {T}
-                @nospecialize data
-                return $VType{T}(data)
-            end
+            $VType(data) = $VType{eltype(data)}(data)
         end
     end
 end
@@ -115,9 +95,12 @@ end
 
     @boundscheck boundscheck(v, inds)
     if known_length(inds) === nothing
-        return FixedMutableVector{T}(unsafe_getindex(v.data, inds), OneTo{Int}(length(inds)))
+        return FixedMutableVector{T}(DenseArrays.unsafe_getindex(v.data, inds), OneTo{Int}(length(inds)))
     else
-        return StaticMutableVector{T}(unsafe_getindex(v.data, inds), OneToSRange{Int}(known_length(inds)))
+        return StaticMutableVector{T}(
+            DenseArrays.unsafe_getindex(v.data, inds),
+            OneToSRange{Int}(known_length(inds))
+        )
     end
 end
 
