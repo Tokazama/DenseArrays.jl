@@ -1,0 +1,12 @@
+name = "DenseArrays"
+uuid = "2bf25bc3-07ee-4d41-8b9c-4de6c07ecfe5"
+authors = ["Zachary P. Christensen <zchristensen7@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+ArrayInterface = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
+StaticRanges = "d8176aec-3168-11e9-3c98-e3954798be3a"
+
+[compat]
+ArrayInterface = "2"
+StaticRanges = "0.7"
