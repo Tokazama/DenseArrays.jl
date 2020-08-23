@@ -25,6 +25,12 @@ for I in (:Immutable,:Mutable)
                 @nospecialize data
                 return new{eltype(data)}($CollectionType(data), OneTo{Int}(length(data)))
             end
+
+            function $VType(data...)
+                T = eltype(data)
+                @nospecialize data
+                return new{T}($CollectionType(data), OneTo{Int}(length(data)))
+            end
         end
     end
 end
